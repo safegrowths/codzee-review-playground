@@ -57,3 +57,34 @@ test("deletes a task and returns no content", async () => {
   const response = await request(app).delete(`/api/tasks/${created.body.data.id}`);
   assert.equal(response.status, 204);
 });
+
+
+test("searches task titles without case sensitivity", async () => {
+  await request(app).post("/api/tasks").send({ title: "Review Codzee" });
+  await request(app).post("/api/tasks").send({ title: "Write documentation" });
+
+  const response = await request(app).get("/api/tasks?search=codzee");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.pagination.total, 1);
+  assert.equal(response.body.data[0].title, "Review Codzee");
+});
+
+test("rejects an empty search query", async () => {
+  const response = await request(app).get("/api/tasks?search=%20");
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.error.code, "INVALID_SEARCH");
+});
+
+test("paginates task results", async () => {
+  await request(app).post("/api/tasks").send({ title: "Task one" });
+  await request(app).post("/api/tasks").send({ title: "Task two" });
+
+  const response = await request(app).get("/api/tasks?page=1&limit=1");
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.length, 1);
+  assert.equal(response.body.pagination.total, 2);
+  assert.equal(response.body.pagination.totalPages, 2);
+});
