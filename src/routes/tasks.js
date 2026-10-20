@@ -8,6 +8,25 @@ router.get("/", (req, res) => {
   const { completed } = req.query;
   let tasks = store.listTasks();
 
+  const { search } = req.query;
+
+if (search !== undefined) {
+  if (typeof search !== "string" || search.trim().length === 0) {
+    return res.status(400).json({
+      error: {
+        code: "INVALID_SEARCH",
+        message: "search must be a non-empty string."
+      }
+    });
+  }
+
+  const query = search.trim().toLowerCase();
+
+  tasks = tasks.filter((task) =>
+    task.title.toLowerCase().includes(query)
+  );
+}
+
   if (completed !== undefined) {
     if (!["true", "false"].includes(completed)) {
       return res.status(400).json({
