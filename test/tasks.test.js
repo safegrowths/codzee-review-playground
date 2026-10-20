@@ -29,16 +29,29 @@ test("rejects a blank title", async () => {
   assert.equal(response.body.error.code, "VALIDATION_ERROR");
 });
 
-test("lists tasks and filters by completion status", async () => {
-  await request(app).post("/api/tasks").send({ title: "Open task" });
-  const created = await request(app).post("/api/tasks").send({ title: "Done task" });
-  await request(app).patch(`/api/tasks/${created.body.data.id}`).send({ completed: true });
 
-  const response = await request(app).get("/api/tasks?completed=true");
+test("lists tasks and filters by completion status", async () => {
+  await request(app)
+    .post("/api/tasks")
+    .send({ title: "Open task" });
+
+  const created = await request(app)
+    .post("/api/tasks")
+    .send({ title: "Done task" });
+
+  await request(app)
+    .patch(`/api/tasks/${created.body.data.id}`)
+    .send({ completed: true });
+
+  const response = await request(app)
+    .get("/api/tasks?completed=true");
+
   assert.equal(response.status, 200);
-  assert.equal(response.body.count, 1);
+  assert.equal(response.body.pagination.total, 1);
+  assert.equal(response.body.data.length, 1);
   assert.equal(response.body.data[0].title, "Done task");
 });
+
 
 test("returns 404 when a task does not exist", async () => {
   const response = await request(app).get("/api/tasks/999");

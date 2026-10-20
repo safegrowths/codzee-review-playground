@@ -4,21 +4,62 @@ const { validateCreateTask, validateUpdateTask } = require("../middleware/valida
 
 const router = express.Router();
 
+
 router.get("/", (req, res) => {
   const { completed } = req.query;
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 10);
+
+  if (!Number.isInteger(page) || page < 1) {
+    return res.status(400).json({
+      error: {
+        code: "INVALID_PAGE",
+        message: "page must be a positive integer."
+      }
+    });
+  }
+
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    return res.status(400).json({
+      error: {
+        code: "INVALID_LIMIT",
+        message: "limit must be an integer between 1 and 100."
+      }
+    });
+  }
+
   let tasks = store.listTasks();
 
   if (completed !== undefined) {
     if (!["true", "false"].includes(completed)) {
       return res.status(400).json({
-        error: { code: "INVALID_QUERY", message: "completed must be true or false." }
+        error: {
+          code: "INVALID_QUERY",
+          message: "completed must be true or false."
+        }
       });
     }
-    tasks = tasks.filter((task) => task.completed === (completed === "true"));
+
+    tasks = tasks.filter(
+      (task) => task.completed === (completed === "true")
+    );
   }
 
-  return res.json({ data: tasks, count: tasks.length });
+  const total = tasks.length;
+  const start = (page - 1) * limit;
+  const data = tasks.slice(start, start + limit);
+
+  return res.json({
+    data,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  });
 });
+
 
 router.get("/:id", (req, res) => {
   const id = Number(req.params.id);
