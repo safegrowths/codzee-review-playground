@@ -1,0 +1,19 @@
+{
+  "name": "codzee-review-playground",
+  "version": "1.0.0",
+  "description": "A small Express task API prepared for meaningful code-review pull requests.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "test:watch": "node --test --watch"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.1"
+  }
+}
